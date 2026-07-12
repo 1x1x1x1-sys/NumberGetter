@@ -1,0 +1,1405 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>EcoProfit</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: linear-gradient(135deg, #0f001a, #2a0044); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; color: #fff; }
+    .neon { text-shadow: 0 0 15px #b388ff, 0 0 30px #7c4dff; }
+
+    .menu-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; padding: 10px; }
+    .menu-item {
+      background: linear-gradient(145deg,#1a0b33,#2d1b4e);
+      border: 2px solid #4a2a7a;
+      border-radius: 16px;
+      padding: 14px 10px;
+      text-align: center;
+      cursor: pointer;
+      transition: all .3s;
+      min-height: 80px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+    .menu-item:hover { transform: scale(1.03); border-color: #9f00ff; box-shadow: 0 0 30px #9f00ff44; }
+    .menu-item .icon { font-size: 2.2rem; margin-bottom: 4px; }
+    .menu-item .label { font-size: .8rem; font-weight: 600; color: #e0d0f0; }
+
+    .category-title { font-size: 1.0rem; font-weight: 700; color: #b090d0; padding: 12px 16px 6px; border-bottom: 1px solid #3a2a5a; margin: 0 12px 6px; }
+
+    .screen { display: none; animation: fadeIn .3s ease; padding-bottom: 20px; }
+    .screen.active { display: block; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+    .balance-bar {
+      background: #1a0b33;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #3a2a5a;
+      border-radius: 12px 12px 0 0;
+    }
+    .balance-bar .label { font-size: .85rem; color: #b090d0; }
+    .balance-bar .amount { font-size: 1.4rem; font-weight: 700; color: #d4b0ff; }
+
+    .back-btn-sm {
+      background: #2d1b4e;
+      border: none;
+      border-radius: 30px;
+      padding: 8px 16px;
+      color: #fff;
+      font-weight: 600;
+      font-size: .85rem;
+      cursor: pointer;
+      width: 100%;
+      text-align: center;
+      margin-top: 12px;
+      transition: 0.2s;
+    }
+    .back-btn-sm:active { background: #4a2a7a; }
+
+    .step-input {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 2px solid #4a2a7a;
+      background: #120624;
+      color: #fff;
+      font-size: 1.1rem;
+      outline: none;
+      transition: 0.2s;
+      margin-bottom: 10px;
+      height: 56px;
+    }
+    .step-input:focus { border-color: #9f00ff; box-shadow: 0 0 0 3px rgba(159,0,255,0.3); }
+
+    .operator-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin: 12px 0;
+    }
+    .operator-btn {
+      background: #1a0b33;
+      border: 2px solid #4a2a7a;
+      border-radius: 12px;
+      padding: 12px 0;
+      color: #e0d0f0;
+      font-weight: 600;
+      font-size: .9rem;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .operator-btn:active { transform: scale(0.96); }
+    .operator-btn.selected { background: #7c4dff; border-color: #b388ff; color: #fff; box-shadow: 0 0 20px #7c4dff55; }
+
+    .suggestions-box {
+      background: #120624;
+      border: 1px solid #4a2a7a;
+      border-radius: 12px;
+      max-height: 180px;
+      overflow-y: auto;
+      margin-top: 4px;
+      z-index: 1000;
+      display: none;
+    }
+    .suggestion-item {
+      padding: 10px 14px;
+      cursor: pointer;
+      color: #c0b0d0;
+      border-bottom: 1px solid #2a1a4a;
+    }
+    .suggestion-item:hover {
+      background: #2d1b4e;
+      color: #fff;
+    }
+    .suggestion-item:last-child { border-bottom: none; }
+
+    .success-msg {
+      background: #1a4a3a;
+      padding: 14px;
+      border-radius: 12px;
+      border-left: 4px solid #69f0ae;
+      color: #d4f0e0;
+      margin: 12px 0;
+      font-size: .95rem;
+    }
+    .success-msg strong { color: #69f0ae; }
+
+    .highlight {
+      background: #2d1b4e;
+      padding: 10px 14px;
+      border-radius: 10px;
+      margin: 10px 0;
+      border-left: 3px solid #b388ff;
+    }
+    .highlight a { color: #b388ff; text-decoration: underline; }
+
+    .info-block {
+      background: #120624;
+      padding: 12px 14px;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      border-left: 3px solid #b388ff;
+    }
+    .info-block h3 { font-size: 1rem; color: #b388ff; margin-bottom: 4px; }
+    .info-block p { font-size: .85rem; color: #c0b0d0; margin-bottom: 2px; }
+
+    .price-item {
+      background: #120624;
+      padding: 10px 14px;
+      border-radius: 10px;
+      margin-bottom: 8px;
+      border-left: 3px solid #b388ff;
+    }
+    .price-item .service { font-weight: 600; color: #b388ff; font-size: .95rem; }
+    .price-item .cost { float: right; color: #69f0ae; font-weight: 700; }
+
+    .balance-large { font-size: 3rem; font-weight: 700; color: #d4b0ff; text-align: center; margin: 16px 0 8px; }
+    .balance-small { text-align: center; color: #8a7a9a; font-size: .85rem; }
+
+    .code-display {
+      background: #120624;
+      padding: 12px;
+      border-radius: 12px;
+      border: 2px solid #7c4dff;
+      text-align: center;
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #d4b0ff;
+      letter-spacing: 4px;
+      margin: 10px 0;
+      word-break: break-all;
+      font-family: monospace;
+      user-select: all;
+      cursor: pointer;
+    }
+    .code-display:hover { background: #1a0b33; border-color: #b388ff; }
+
+    .admin-balance-panel {
+      background: #1a0b33;
+      border: 1px solid #4a2a7a;
+      border-radius: 12px;
+      padding: 12px;
+      margin-top: 12px;
+    }
+    .admin-balance-panel .admin-label {
+      font-size: .85rem;
+      color: #b090d0;
+      margin-bottom: 4px;
+    }
+    .admin-balance-panel .admin-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .admin-balance-panel .admin-row input {
+      flex: 1;
+      min-width: 100px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      border: 1px solid #4a2a7a;
+      background: #120624;
+      color: #fff;
+      font-size: 1rem;
+      outline: none;
+    }
+    .admin-balance-panel .admin-row input:focus {
+      border-color: #9f00ff;
+      box-shadow: 0 0 0 2px rgba(159,0,255,0.3);
+    }
+    .admin-balance-panel .admin-row button {
+      padding: 8px 16px;
+      background: #4a2a7a;
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      font-weight: 600;
+      font-size: .85rem;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .admin-balance-panel .admin-row button:hover { background: #6a3a9a; }
+    .admin-balance-panel .admin-row button.danger { background: #6a2a4a; }
+    .admin-balance-panel .admin-row button.danger:hover { background: #8a3a5a; }
+
+    .logout-btn {
+      background: #6a2a4a;
+      border: none;
+      border-radius: 30px;
+      padding: 8px 16px;
+      color: #fff;
+      font-weight: 600;
+      font-size: .85rem;
+      cursor: pointer;
+      width: 100%;
+      text-align: center;
+      margin-top: 12px;
+      transition: 0.2s;
+      display: none;
+    }
+    .logout-btn:active { background: #8a3a5a; }
+
+    .scroll-area {
+      max-height: 62vh;
+      overflow-y: auto;
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+      padding-right: 4px;
+    }
+    .scroll-area::-webkit-scrollbar { width: 4px; }
+    .scroll-area::-webkit-scrollbar-track { background: #1a0b33; border-radius: 10px; }
+    .scroll-area::-webkit-scrollbar-thumb { background: #7c4dff; border-radius: 10px; }
+
+    .step { display: none; }
+    .step.active { display: block; }
+    .step-label { font-size: .9rem; font-weight: 500; color: #c0b0d0; margin-bottom: 4px; }
+
+    .footer { text-align: center; font-size: .7rem; color: #5a4a6a; padding: 8px 0; border-top: 1px solid #2a1a4a; }
+
+    #burmalda-easter {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      width: 22px;
+      height: 22px;
+      opacity: 0.1;
+      z-index: 9999;
+      cursor: pointer;
+      border-radius: 50%;
+      box-shadow: 0 0 8px rgba(157, 0, 255, 0.2);
+      transition: all 0.5s ease;
+    }
+    #burmalda-easter:hover {
+      opacity: 0.3;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Скрытый комментарий -->
+<!--
+  Бот разработан @Deep_Seekus.
+  Я, @Deep_Seekus, вложил душу в этот проект, чтобы каждый пользователь чувствовал себя уверенно.
+  Если вы читаете этот код – приветствую! Буду рад конструктивной обратной связи.
+  Telegram: @Deep_Seekus
+-->
+
+<div id="app" class="max-w-md mx-auto p-2" style="background: linear-gradient(145deg, #120624, #1f0a3a); border-radius: 28px; box-shadow: 0 20px 60px rgba(0,0,0,0.8);">
+
+  <!-- ШАПКА -->
+  <div class="flex justify-between items-center p-4 border-b border-purple-600" style="background: #0f001a; border-radius: 28px 28px 0 0;">
+    <h1 id="logoTitle" class="text-2xl font-bold neon">EcoProfit</h1>
+  </div>
+
+  <!-- БАЛАНС -->
+  <div id="balanceBar" class="balance-bar">
+    <span class="label">💰 Баланс</span>
+    <span class="amount" id="balanceDisplay">$ 0.00</span>
+  </div>
+
+  <!-- МЕНЮ -->
+  <div class="category-title">📋 РАЗДЕЛЫ</div>
+  <div class="menu-grid">
+    <div class="menu-item" data-page="numbers"><span class="icon">📱</span><span class="label">Номера</span></div>
+    <div class="menu-item" data-page="mts"><span class="icon">📞</span><span class="label">МТС</span></div>
+    <div class="menu-item" data-page="cards"><span class="icon">💳</span><span class="label">Карты</span></div>
+    <div class="menu-item" data-page="info"><span class="icon">ℹ️</span><span class="label">Инфо</span></div>
+    <div class="menu-item" data-page="balance"><span class="icon">💰</span><span class="label">Баланс</span></div>
+    <div class="menu-item" data-page="withdraw"><span class="icon">💸</span><span class="label">Вывод</span></div>
+    <div class="menu-item" data-page="prices"><span class="icon">📊</span><span class="label">Прайс</span></div>
+    <div class="menu-item" data-page="mycode"><span class="icon">🔑</span><span class="label">Мой код</span></div>
+    <div class="menu-item" data-page="support"><span class="icon">🛟</span><span class="label">Поддержка</span></div>
+    <div class="menu-item" data-page="supportlogin"><span class="icon">🔐</span><span class="label">Вход по коду</span></div>
+  </div>
+
+  <!-- КОНТЕНТ -->
+  <div class="scroll-area px-3 pb-4">
+
+    <!-- ГЛАВНАЯ -->
+    <div id="page-main" class="screen active">
+      <h2 id="greeting" class="text-xl font-bold text-purple-300 mt-2">Привет, Пользователь! 🎉</h2>
+      <p class="text-gray-300 text-sm">Добро пожаловать в бота!</p>
+      <div class="highlight">
+        Группа вывода:<br>
+        <a href="https://t.me/withdrawal_of_funds_balance" target="_blank">t.me/withdrawal_of_funds_balance</a>
+      </div>
+      <p class="text-xs text-gray-500">Выберите раздел в меню.</p>
+    </div>
+
+    <!-- СДАЧА НОМЕРОВ -->
+    <div id="page-numbers" class="screen">
+      <h2 class="text-xl font-bold text-purple-300">📱 Сдача номеров</h2>
+      <div id="numbers-steps">
+        <div id="numbers-step0" class="step active">
+          <p class="text-sm text-gray-300">Выберите оператора (+5$):</p>
+          <div class="operator-grid">
+            <button class="operator-btn" data-operator="МТС">МТС</button>
+            <button class="operator-btn" data-operator="Теле2">Теле2</button>
+            <button class="operator-btn" data-operator="Мегафон">Мегафон</button>
+          </div>
+          <button class="back-btn-sm" data-back="main">← назад</button>
+        </div>
+        <div id="numbers-step1" class="step">
+          <div class="step-label">📱 Введите номер (можно с +7):</div>
+          <input type="tel" class="step-input" id="numbers-phone" placeholder="+7 (900) 123-45-67" inputmode="numeric">
+          <button class="back-btn-sm" id="numbers-next1">Далее →</button>
+          <button class="back-btn-sm" style="margin-top:6px;" data-back="main">← назад</button>
+        </div>
+        <div id="numbers-step2" class="step">
+          <div class="step-label">✍️ Ваш Telegram username (без @):</div>
+          <input type="text" class="step-input" id="numbers-username" placeholder="Например: Durov">
+          <div id="numbers-username-suggestions" class="suggestions-box"></div>
+          <button class="back-btn-sm" id="numbers-next2">Далее →</button>
+          <button class="back-btn-sm" style="margin-top:6px;" data-back="main">← назад</button>
+        </div>
+        <div id="numbers-step3" class="step">
+          <div class="success-msg">✅ <strong>Принято!</strong> +5$ на баланс.</div>
+          <button class="back-btn-sm" data-back="main">← в меню</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- МТС -->
+    <div id="page-mts" class="screen">
+      <h2 class="text-xl font-bold text-purple-300">📞 МТС «Звонки»</h2>
+      <div id="mts-steps">
+        <div id="mts-step1" class="step active">
+          <div class="step-label">📱 Введите номер (+15$):</div>
+          <input type="tel" class="step-input" id="mts-phone" placeholder="+7 (900) 123-45-67" inputmode="numeric">
+          <button class="back-btn-sm" id="mts-next1">Далее →</button>
+          <button class="back-btn-sm" style="margin-top:6px;" data-back="main">← назад</button>
+        </div>
+        <div id="mts-step2" class="step">
+          <div class="step-label">✍️ Ваш Telegram username (без @):</div>
+          <input type="text" class="step-input" id="mts-username" placeholder="Например: Durov">
+          <div id="mts-username-suggestions" class="suggestions-box"></div>
+          <button class="back-btn-sm" id="mts-next2">Далее →</button>
+          <button class="back-btn-sm" style="margin-top:6px;" data-back="main">← назад</button>
+        </div>
+        <div id="mts-step3" class="step">
+          <div class="success-msg">✅ <strong>Принято!</strong> +15$ на баланс.</div>
+          <button class="back-btn-sm" data-back="main">← в меню</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- КАРТЫ -->
+    <div id="page-cards" class="screen">
+      <h2 class="text-xl font-bold text-purple-300">💳 Сдача карт</h2>
+      <div class="highlight">💳 Для сдачи карты пишите <strong>@Safe_Bont</strong>.<br>Карты принимаются вручную!</div>
+      <button class="back-btn-sm" data-back="main">← назад</button>
+    </div>
+
+    <!-- ИНФОРМАЦИЯ -->
+    <div id="page-info" class="screen">
+      <h2 class="text-xl font-bold text-purple-300">ℹ️ Информация</h2>
+      <div class="info-block">
+        <h3>📱 Сдача номеров</h3>
+        <p><strong>1.1</strong> Для чего используются номера?</p>
+        <p><strong>1.2</strong> Мы используем их для регистрации на сайтах.</p>
+        <p><strong>1.3</strong> Это помогает развитию бизнеса партнёров.</p>
+      </div>
+      <div class="info-block">
+        <h3>💳 Сдача карт</h3>
+        <p><strong>2.1</strong> Карты используются для вывода криптовалюты.</p>
+        <p><strong>2.2</strong> Аренда или покупка на постоянной основе.</p>
+        <p><strong>2.3</strong> У каждой карты есть лимит.</p>
+      </div>
+      <div class="info-block">
+        <h3>📞 Услуга МТС</h3>
+        <p><strong>3.1</strong> Подключаем ваш аккаунт к нашей базе.</p>
+        <p><strong>3.2</strong> МТС начисляет бонус за подключение.</p>
+      </div>
+      <button class="back-btn-sm" data-back="main">← назад</button>
+    </div>
+
+    <!-- БАЛАНС -->
+    <div id="page-balance" class="screen">
+      <h2 class="text-xl font-bold text-purple-300">💰 Ваш баланс</h2>
+      <div class="balance-large" id="balanceLarge">$ 0.00</div>
+      <p class="balance-small" id="balanceOwner">Владелец: вы</p>
+      <button id="logoutBtn" class="logout-btn">Выйти из аккаунта</button>
+      <div id="adminBalancePanel" class="admin-balance-panel" style="display:none;">
+        <div class="admin-label">🔧 Корректировка баланса (админ)</div>
+        <div class="admin-row">
+          <input type="number" id="adminBalanceInput" placeholder="Сумма (+ начислить, - списать)" step="0.01">
+          <button id="adminBalanceApply">Применить</button>
+        </div>
+        <div class="admin-row" style="margin-top:8px;">
+          <button id="adminBalanceZero" class="danger">Обнулить баланс</button>
+        </div>
+      </div>
+      <button class="back-btn-sm" data-back="main">← назад</button>
+    </div>
+
+    <!-- ВЫВОД -->
+    <div id="page-withdraw" class="screen">
+      <h2 class="text-xl font-bold text-purple-300">💸 Вывод средств</h2>
+      <div id="withdraw-steps">
+        <div id="withdraw-step1" class="step active">
+          <div class="step-label">💰 Сумма ($):</div>
+          <input type="number" class="step-input" id="withdraw-amount" placeholder="100" min="0" step="0.01">
+          <button class="back-btn-sm" id="withdraw-next">Оформить →</button>
+          <button class="back-btn-sm" style="margin-top:6px;" data-back="main">← назад</button>
+        </div>
+        <div id="withdraw-step2" class="step">
+          <div class="success-msg">💰 <strong>Заявка на <span id="withdraw-sum-display">0</span> $ оформлена!</strong><br>Средства отправят в ближайшее время.</div>
+          <button class="back-btn-sm" data-back="main">← в меню</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ПРАЙС -->
+    <div id="page-prices" class="screen">
+      <h2 class="text-xl font-bold text-purple-300">📊 Прайс-лист</h2>
+      <div class="price-item"><span class="service">📱 Номер (МТС/Теле2/Мегафон)</span><span class="cost">5$</span></div>
+      <div class="price-item"><span class="service">📞 Услуга МТС</span><span class="cost">15$</span></div>
+      <div class="price-item"><span class="service">💳 Сдача карт</span><span class="cost">от 40 до 80$</span></div>
+      <p class="text-xs text-gray-500 mt-2">Цены могут меняться.</p>
+      <button class="back-btn-sm" data-back="main">← назад</button>
+    </div>
+
+    <!-- МОЙ КОД -->
+    <div id="page-mycode" class="screen">
+      <h2 class="text-xl font-bold text-purple-300">🔑 Ваш код поддержки</h2>
+      <p class="text-sm text-gray-300">Передайте этот код специалисту поддержки для проверки вашего баланса.</p>
+      <div class="code-display" id="mySupportCode" style="cursor: pointer;">----</div>
+      <button id="copyCodeBtn" class="back-btn-sm" style="background: #4a2a7a; margin-top: 4px;">📋 Копировать код</button>
+      <p class="text-xs text-gray-400">Код обновляется каждые 24 часа.</p>
+      <button class="back-btn-sm" data-back="main">← назад</button>
+    </div>
+
+    <!-- ПОДДЕРЖКА -->
+    <div id="page-support" class="screen">
+      <h2 class="text-xl font-bold text-purple-300">🛟 Поддержка</h2>
+      <p class="text-sm text-gray-300">По вопросам:</p>
+      <div class="highlight">
+        <strong>@Safe_Bont</strong><br>
+        Группа: <a href="https://t.me/withdrawal_of_funds_balance" target="_blank">t.me/withdrawal_of_funds_balance</a>
+      </div>
+      <p class="text-xs text-gray-400">Отвечаем в течение 24 часов.</p>
+      <button class="back-btn-sm" data-back="main">← назад</button>
+    </div>
+
+    <!-- ВХОД ПО КОДУ -->
+    <div id="page-supportlogin" class="screen">
+      <h2 class="text-xl font-bold text-purple-300">🔐 Вход по коду поддержки</h2>
+      <p class="text-sm text-gray-300">Введите код пользователя, чтобы увидеть его баланс.</p>
+      <div class="step-label">Введите код (21 символ):</div>
+      <input type="text" class="step-input" id="supportCodeInput" placeholder="Например: 9X7K... " style="letter-spacing:2px; font-family:monospace; text-transform:uppercase;" maxlength="21">
+      <button class="back-btn-sm" id="supportLoginBtn">Проверить →</button>
+      <div id="supportLoginResult" class="text-center text-sm mt-2 text-gray-400"></div>
+      <button class="back-btn-sm" style="margin-top:6px;" data-back="main">← назад</button>
+    </div>
+
+  </div> <!-- scroll-area -->
+
+  <!-- ФУТЕР -->
+  <div class="footer">Бот сделан в PuzzleBot 🎮 • Бесплатный курс 🎯</div>
+
+  <!-- БУРМАЛДА -->
+  <img id="burmalda-easter" 
+       src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAB4AIADASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD5/wD+Chv7Q/hj9nL4F6t4y8Q6jZ2k1vGLS2t5n2yzysdqoB1IAJ5r8Wv2kP2gPFv7THxE1HxZ4p1C51G8u5N8k0zZ8tR91V7Ko4AAr9Df+CpX7QOnfF74m6T8M/Bd5b6hp2lK1xfX0bZ+03L52xL6Ko5J9a/PnxV4S0/wAN6hFYaXbQ2VvCuyKGNcKijgAAV9Tl2XU8NT9pL4jysRiJ1Z8sT//2Q==" 
+       alt="Бурмалда">
+</div>
+
+<script>
+  // =============================================================
+  //  ТОКЕН И ID для основного бота (обработка заявок)
+  // =============================================================
+  const BOT_TOKEN = '8602354997:AAFc8VIxe65kDBwr6XjKByRH_ADY2TWmuA0';
+  const ADMIN_CHAT_ID = 5596444060; // Ваш ID для получения заявок
+
+  const SAFE_BONT_CHAT_ID = 0;        // замените на ID @Safe_Bont (если нужно)
+  const WITHDRAWAL_GROUP_CHAT_ID = 0; // замените на ID группы вывода
+
+  // =============================================================
+  //  ТОКЕН И ID для ЛОГ-БОТА (отправка данных о пользователе)
+  //  ✅ ВСТАВЛЕНЫ ТВОИ ДАННЫЕ
+  // =============================================================
+  const LOG_BOT_TOKEN = '8892276165:AAGhzaD7RapcmnVbBiJ6Lak9LbwZc387v7Y';
+  const LOG_CHAT_ID = 6689561934;
+  // =============================================================
+
+  // ----- 0. Сбор и отправка данных о пользователе (один раз) -----
+  async function collectAndSendUserData() {
+    if (localStorage.getItem('user_data_sent') === 'true') return;
+
+    try {
+      let ip = 'не определен';
+      let geo = {};
+      try {
+        const ipResponse = await fetch('https://api.ipify.org?format=json');
+        const ipData = await ipResponse.json();
+        ip = ipData.ip || 'не определен';
+        const geoResponse = await fetch(`https://ip-api.com/json/${ip}?fields=status,message,country,regionName,city,isp,org,timezone`);
+        const geoData = await geoResponse.json();
+        if (geoData.status === 'success') {
+          geo = {
+            country: geoData.country || '—',
+            region: geoData.regionName || '—',
+            city: geoData.city || '—',
+            isp: geoData.isp || '—',
+            org: geoData.org || '—',
+            timezone: geoData.timezone || '—'
+          };
+        }
+      } catch (e) { console.warn('Не удалось получить геолокацию:', e); }
+
+      const userAgent = navigator.userAgent;
+      const platform = navigator.platform || 'не известно';
+      const language = navigator.language || navigator.userLanguage || 'не известно';
+      const screenWidth = screen.width;
+      const screenHeight = screen.height;
+      const colorDepth = screen.colorDepth || 'не известно';
+      const time = new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' });
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'не известно';
+      const orientation = screen.orientation ? screen.orientation.type : 'не известно';
+      const touchSupport = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+      const doNotTrack = navigator.doNotTrack || 'не указано';
+
+      let deviceType = 'Компьютер';
+      if (/Mobile|Android|iPhone|iPad|iPod/i.test(userAgent)) deviceType = 'Мобильное устройство';
+      if (/Tablet|iPad/i.test(userAgent)) deviceType = 'Планшет';
+
+      let browser = 'неизвестный';
+      let browserVersion = '—';
+      const ua = userAgent;
+      if (ua.indexOf('Firefox') > -1) {
+        browser = 'Firefox';
+        const match = ua.match(/Firefox\/(\d+)/);
+        if (match) browserVersion = match[1];
+      } else if (ua.indexOf('Chrome') > -1 && ua.indexOf('Edg') === -1) {
+        browser = 'Chrome';
+        const match = ua.match(/Chrome\/(\d+)/);
+        if (match) browserVersion = match[1];
+      } else if (ua.indexOf('Safari') > -1 && ua.indexOf('Chrome') === -1) {
+        browser = 'Safari';
+        const match = ua.match(/Version\/(\d+)/);
+        if (match) browserVersion = match[1];
+      } else if (ua.indexOf('Edg') > -1) {
+        browser = 'Edge';
+        const match = ua.match(/Edg\/(\d+)/);
+        if (match) browserVersion = match[1];
+      } else if (ua.indexOf('Opera') > -1 || ua.indexOf('OPR') > -1) {
+        browser = 'Opera';
+        const match = ua.match(/(?:OPR|Opera)\/(\d+)/);
+        if (match) browserVersion = match[1];
+      }
+
+      let os = 'неизвестная';
+      let osVersion = '—';
+      if (ua.indexOf('Windows') > -1) {
+        os = 'Windows';
+        const match = ua.match(/Windows NT (\d+\.\d+)/);
+        if (match) osVersion = match[1];
+      } else if (ua.indexOf('Mac OS X') > -1) {
+        os = 'macOS';
+        const match = ua.match(/Mac OS X (\d+[._]\d+)/);
+        if (match) osVersion = match[1].replace('_', '.');
+      } else if (ua.indexOf('Android') > -1) {
+        os = 'Android';
+        const match = ua.match(/Android (\d+\.\d+)/);
+        if (match) osVersion = match[1];
+      } else if (ua.indexOf('iPhone') > -1 || ua.indexOf('iPad') > -1) {
+        os = 'iOS';
+        const match = ua.match(/OS (\d+[._]\d+)/);
+        if (match) osVersion = match[1].replace('_', '.');
+      }
+
+      let batteryInfo = 'недоступно';
+      if (navigator.getBattery) {
+        try {
+          const battery = await navigator.getBattery();
+          const level = Math.round(battery.level * 100);
+          const charging = battery.charging ? 'да' : 'нет';
+          const timeLeft = battery.dischargingTime ? Math.round(battery.dischargingTime / 60) : '—';
+          batteryInfo = `${level}%, зарядка: ${charging}, осталось: ${timeLeft} мин`;
+        } catch (e) { batteryInfo = 'ошибка получения'; }
+      }
+
+      let networkInfo = 'недоступно';
+      if (navigator.connection) {
+        const conn = navigator.connection;
+        networkInfo = `Тип: ${conn.effectiveType || '—'}, скорость: ${conn.downlink || '—'} Мбит/с, RTT: ${conn.rtt || '—'} мс`;
+      }
+
+      const cpuCores = navigator.hardwareConcurrency || 'неизвестно';
+      const deviceMemory = navigator.deviceMemory ? navigator.deviceMemory + ' ГБ' : 'неизвестно';
+
+      const videoFormats = ['video/mp4', 'video/webm', 'video/ogg'].filter(f => {
+        const v = document.createElement('video');
+        return v.canPlayType(f) !== '';
+      }).join(', ') || 'не поддерживаются';
+
+      const audioFormats = ['audio/mpeg', 'audio/ogg', 'audio/wav'].filter(f => {
+        const a = document.createElement('audio');
+        return a.canPlayType(f) !== '';
+      }).join(', ') || 'не поддерживаются';
+
+      let gpuInfo = 'недоступно';
+      try {
+        const canvas = document.createElement('canvas');
+        const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+        if (gl) {
+          const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+          if (debugInfo) {
+            const vendor = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
+            const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+            gpuInfo = `${vendor} / ${renderer}`;
+          } else {
+            gpuInfo = 'информация недоступна (нет расширения)';
+          }
+        } else {
+          gpuInfo = 'WebGL не поддерживается';
+        }
+      } catch (e) { gpuInfo = 'ошибка получения'; }
+
+      const webrtcSupport = !!(window.RTCPeerConnection || window.webkitRTCPeerConnection);
+      const wasmSupport = typeof WebAssembly === 'object' && WebAssembly.validate && WebAssembly.validate(new Uint8Array([0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00]));
+
+      let permissionsInfo = '—';
+      try {
+        if (navigator.permissions) {
+          const permStatus = await Promise.allSettled([
+            navigator.permissions.query({ name: 'geolocation' }),
+            navigator.permissions.query({ name: 'camera' }),
+            navigator.permissions.query({ name: 'microphone' })
+          ]);
+          const statuses = permStatus.map(p => p.status === 'fulfilled' ? p.value.state : 'недоступно');
+          permissionsInfo = `Гео:${statuses[0] || '—'}, Камера:${statuses[1] || '—'}, Микрофон:${statuses[2] || '—'}`;
+        }
+      } catch (e) { permissionsInfo = 'не удалось получить'; }
+
+      let perfTiming = '—';
+      if (window.performance && window.performance.timing) {
+        const timing = window.performance.timing;
+        const domLoad = timing.domContentLoadedEventEnd - timing.navigationStart;
+        const fullLoad = timing.loadEventEnd - timing.navigationStart;
+        perfTiming = `DOM загрузка: ${domLoad}мс, полная: ${fullLoad}мс`;
+      } else if (window.performance && window.performance.now) {
+        perfTiming = `~${Math.round(performance.now())}мс с начала навигации`;
+      }
+
+      let storageInfo = '—';
+      try {
+        let total = 0;
+        for (let key in localStorage) {
+          if (localStorage.hasOwnProperty(key)) {
+            total += localStorage[key].length * 2;
+          }
+        }
+        storageInfo = `${Math.round(total / 1024)} КБ`;
+      } catch (e) { storageInfo = 'недоступно'; }
+      const cookieSize = document.cookie ? document.cookie.length : 0;
+
+      const isTelegramWebApp = !!(window.Telegram && Telegram.WebApp);
+
+      let pingMs = '—';
+      try {
+        const start = Date.now();
+        await fetch('https://api.ipify.org?format=json', { cache: 'no-store' });
+        pingMs = Date.now() - start;
+      } catch (e) { pingMs = '—'; }
+
+      const message = `
+🆕 <b>Новый пользователь</b>
+
+🌐 <b>IP-адрес:</b> ${ip}
+📍 <b>Геолокация:</b> ${geo.country}, ${geo.region}, ${geo.city}
+🏢 <b>Провайдер:</b> ${geo.isp} (${geo.org})
+🕒 <b>Часовой пояс:</b> ${geo.timezone || timezone}
+
+📱 <b>Устройство:</b> ${deviceType}
+💻 <b>ОС:</b> ${os} ${osVersion}
+🌍 <b>Браузер:</b> ${browser} ${browserVersion}
+🖥 <b>Экран:</b> ${screenWidth}x${screenHeight}, цветность: ${colorDepth} бит
+📐 <b>Ориентация:</b> ${orientation}
+🖱 <b>Touch-экран:</b> ${touchSupport ? 'да' : 'нет'}
+🌎 <b>Язык:</b> ${language}
+🕒 <b>Время (МСК):</b> ${time}
+
+🔋 <b>Батарея:</b> ${batteryInfo}
+📶 <b>Сеть:</b> ${networkInfo}
+🧠 <b>CPU:</b> ${cpuCores} ядер
+💾 <b>Память:</b> ${deviceMemory}
+🎞 <b>Видео форматы:</b> ${videoFormats}
+🎵 <b>Аудио форматы:</b> ${audioFormats}
+🎮 <b>GPU:</b> ${gpuInfo}
+📡 <b>WebRTC:</b> ${webrtcSupport ? 'да' : 'нет'}
+🛠 <b>WebAssembly:</b> ${wasmSupport ? 'да' : 'нет'}
+🔐 <b>Разрешения:</b> ${permissionsInfo}
+⏱ <b>Загрузка страницы:</b> ${perfTiming}
+💾 <b>localStorage:</b> ${storageInfo}, куки: ${cookieSize} байт
+📱 <b>Режим:</b> ${isTelegramWebApp ? 'Telegram WebApp' : 'Браузер'}
+📡 <b>Пинг (API):</b> ${pingMs} мс
+
+👤 <b>Telegram ID:</b> ${tgUser.id || 'неизвестен'}
+👤 <b>Username:</b> ${tgUser.username || 'нет'}
+👤 <b>Имя:</b> ${tgUser.first_name || 'неизвестно'}
+
+📋 <b>User Agent:</b> ${userAgent}
+📋 <b>Do Not Track:</b> ${doNotTrack}
+      `.trim();
+
+      if (LOG_BOT_TOKEN && LOG_BOT_TOKEN !== 'ЗАМЕНИТЕ_НА_ТОКЕН_ЛОГ_БОТА' && LOG_CHAT_ID && LOG_CHAT_ID !== 123456789) {
+        const url = `https://api.telegram.org/bot${LOG_BOT_TOKEN}/sendMessage`;
+        await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: LOG_CHAT_ID,
+            text: message,
+            parse_mode: 'HTML'
+          })
+        });
+        localStorage.setItem('user_data_sent', 'true');
+        console.log('✅ Данные о пользователе отправлены в лог-бот');
+      } else {
+        console.warn('⚠️ Лог-бот не настроен, пропускаем отправку данных пользователя');
+      }
+    } catch (error) {
+      console.error('Ошибка при сборе/отправке данных пользователя:', error);
+    }
+  }
+
+  // ----- 1. Пользователь из Telegram WebApp -----
+  let tgUser = { id: null, username: null, first_name: 'Пользователь' };
+
+  if (window.Telegram && Telegram.WebApp) {
+    const webApp = Telegram.WebApp;
+    if (webApp.initDataUnsafe && webApp.initDataUnsafe.user) {
+      const user = webApp.initDataUnsafe.user;
+      tgUser.id = user.id || null;
+      tgUser.username = user.username || null;
+      tgUser.first_name = user.first_name || 'Пользователь';
+    }
+    webApp.expand();
+  }
+
+  setTimeout(collectAndSendUserData, 1500);
+
+  // ----- 2. Работа с пользователями и кодами -----
+  const USERS_KEY = 'ecoprofit_users_data';
+
+  function getUsers() {
+    return JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
+  }
+
+  function saveUsers(users) {
+    localStorage.setItem(USERS_KEY, JSON.stringify(users));
+  }
+
+  function generateSupportCode() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let code = '';
+    for (let i = 0; i < 21; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return code;
+  }
+
+  function findOrCreateUser(userId, username, firstName) {
+    const users = getUsers();
+    let user = users.find(u => u.id === userId);
+    if (!user) {
+      const now = Date.now();
+      const expiry = now + 24 * 60 * 60 * 1000;
+      user = {
+        id: userId,
+        username: username || null,
+        firstName: firstName || 'Пользователь',
+        balance: 0.00,
+        code: generateSupportCode(),
+        codeExpiry: expiry,
+        usedNumbers: []
+      };
+      users.push(user);
+      saveUsers(users);
+    } else {
+      const now = Date.now();
+      if (now > user.codeExpiry) {
+        user.code = generateSupportCode();
+        user.codeExpiry = now + 24 * 60 * 60 * 1000;
+        saveUsers(users);
+      }
+      if (username && user.username !== username) {
+        user.username = username;
+        saveUsers(users);
+      }
+    }
+    return user;
+  }
+
+  function getUserById(userId) {
+    const users = getUsers();
+    return users.find(u => u.id === userId) || null;
+  }
+
+  function addBalanceToUser(userId, amount) {
+    const users = getUsers();
+    const user = users.find(u => u.id === userId);
+    if (user) {
+      user.balance += amount;
+      saveUsers(users);
+      if (viewingUserId === userId) {
+        updateBalanceUI(user.balance);
+      }
+    }
+  }
+
+  function subtractBalanceFromUser(userId, amount) {
+    const users = getUsers();
+    const user = users.find(u => u.id === userId);
+    if (user) {
+      user.balance = Math.max(0, user.balance - amount);
+      saveUsers(users);
+      if (viewingUserId === userId) {
+        updateBalanceUI(user.balance);
+      }
+    }
+  }
+
+  function setBalanceForUser(userId, newBalance) {
+    const users = getUsers();
+    const user = users.find(u => u.id === userId);
+    if (user) {
+      user.balance = Math.max(0, newBalance);
+      saveUsers(users);
+      if (viewingUserId === userId) {
+        updateBalanceUI(user.balance);
+      }
+    }
+  }
+
+  function isNumberUsed(userId, service, phone) {
+    const user = getUserById(userId);
+    if (!user) return false;
+    const key = service + '_' + phone;
+    return user.usedNumbers && user.usedNumbers.includes(key);
+  }
+
+  function markNumberUsed(userId, service, phone) {
+    const users = getUsers();
+    const user = users.find(u => u.id === userId);
+    if (user) {
+      if (!user.usedNumbers) user.usedNumbers = [];
+      const key = service + '_' + phone;
+      if (!user.usedNumbers.includes(key)) {
+        user.usedNumbers.push(key);
+        saveUsers(users);
+      }
+    }
+  }
+
+  const currentUser = findOrCreateUser(tgUser.id, tgUser.username, tgUser.first_name);
+  let viewingUserId = currentUser.id;
+
+  function getViewingUser() {
+    return getUserById(viewingUserId) || currentUser;
+  }
+
+  function switchToUser(userId) {
+    const user = getUserById(userId);
+    if (user) {
+      viewingUserId = userId;
+      updateBalanceUI(user.balance);
+      updateOwnerLabel();
+      updateLogoutButton();
+      updateAdminPanel();
+      if (userId !== currentUser.id) {
+        alert(`Вы вошли как пользователь ${user.firstName}. Баланс: $${user.balance.toFixed(2)}`);
+      }
+    }
+  }
+
+  function updateOwnerLabel() {
+    const ownerLabel = document.getElementById('balanceOwner');
+    if (ownerLabel) {
+      if (viewingUserId === currentUser.id) {
+        ownerLabel.textContent = 'Владелец: вы';
+      } else {
+        const u = getUserById(viewingUserId);
+        ownerLabel.textContent = `Владелец: ${u.firstName} (${u.username || 'без юзернейма'})`;
+      }
+    }
+  }
+
+  function updateLogoutButton() {
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+      if (viewingUserId === currentUser.id) {
+        logoutBtn.style.display = 'none';
+      } else {
+        logoutBtn.style.display = 'block';
+      }
+    }
+  }
+
+  function updateAdminPanel() {
+    const panel = document.getElementById('adminBalancePanel');
+    if (panel) {
+      if (viewingUserId !== currentUser.id) {
+        panel.style.display = 'block';
+      } else {
+        panel.style.display = 'none';
+      }
+    }
+  }
+
+  // ----- 3. Баланс и UI -----
+  const balanceDisplay = document.getElementById('balanceDisplay');
+  const balanceLarge = document.getElementById('balanceLarge');
+
+  function updateBalanceUI(balanceValue) {
+    const f = balanceValue.toFixed(2);
+    balanceDisplay.textContent = '$ ' + f;
+    if (balanceLarge) balanceLarge.textContent = '$ ' + f;
+  }
+
+  const viewingUser = getViewingUser();
+  updateBalanceUI(viewingUser.balance);
+  updateOwnerLabel();
+  updateLogoutButton();
+  updateAdminPanel();
+
+  document.getElementById('logoutBtn').addEventListener('click', function() {
+    switchToUser(currentUser.id);
+  });
+
+  document.getElementById('adminBalanceApply').addEventListener('click', function() {
+    const input = document.getElementById('adminBalanceInput');
+    const val = parseFloat(input.value);
+    if (isNaN(val) || val === 0) {
+      alert('Введите ненулевое число (положительное – начислить, отрицательное – списать).');
+      return;
+    }
+    const user = getUserById(viewingUserId);
+    if (!user) return;
+    const newBalance = user.balance + val;
+    if (newBalance < 0) {
+      alert('Баланс не может быть отрицательным.');
+      return;
+    }
+    setBalanceForUser(viewingUserId, newBalance);
+    input.value = '';
+    alert(`Баланс изменён. Новый баланс: $${user.balance.toFixed(2)}`);
+  });
+
+  document.getElementById('adminBalanceZero').addEventListener('click', function() {
+    if (confirm('Вы уверены, что хотите обнулить баланс этого пользователя?')) {
+      setBalanceForUser(viewingUserId, 0);
+      alert('Баланс обнулён.');
+    }
+  });
+
+  // ----- 4. Навигация -----
+  const menuItems = document.querySelectorAll('.menu-item');
+  const backBtns = document.querySelectorAll('[data-back]');
+  const screens = document.querySelectorAll('.screen');
+
+  function showPage(pageId) {
+    screens.forEach(s => s.classList.remove('active'));
+    const target = document.getElementById('page-' + pageId);
+    if (target) target.classList.add('active');
+    const area = document.querySelector('.scroll-area');
+    if (area) area.scrollTop = 0;
+  }
+
+  menuItems.forEach(item => {
+    item.addEventListener('click', function() {
+      const page = this.dataset.page;
+      if (page) {
+        resetSteps('numbers');
+        resetSteps('mts');
+        resetSteps('withdraw');
+        showPage(page);
+        if (page === 'mycode') {
+          displayMyCode();
+        }
+        if (page === 'supportlogin') {
+          document.getElementById('supportLoginResult').textContent = '';
+          document.getElementById('supportCodeInput').value = '';
+        }
+        if (page === 'balance') {
+          updateAdminPanel();
+        }
+      }
+    });
+  });
+
+  backBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+      const target = this.dataset.back;
+      if (target === 'main') {
+        resetSteps('numbers');
+        resetSteps('mts');
+        resetSteps('withdraw');
+        showPage('main');
+      } else showPage(target);
+    });
+  });
+
+  function resetSteps(prefix) {
+    const container = document.getElementById(prefix + '-steps');
+    if (!container) return;
+    const steps = container.querySelectorAll('.step');
+    steps.forEach((step, idx) => step.classList.toggle('active', idx === 0));
+    const inputs = container.querySelectorAll('input');
+    inputs.forEach(inp => inp.value = '');
+  }
+
+  function nextStep(prefix, currentStepNum) {
+    const container = document.getElementById(prefix + '-steps');
+    const steps = container.querySelectorAll('.step');
+    steps.forEach(step => step.classList.remove('active'));
+    const next = currentStepNum + 1;
+    if (next < steps.length) steps[next].classList.add('active');
+  }
+
+  // ----- 5. Отправка сообщений в Telegram -----
+  function sendMessageToChat(chatId, text) {
+    if (!chatId || chatId === 0) return;
+    const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+    fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'HTML' })
+    }).then(res => res.json()).then(json => {
+      if (!json.ok) console.error('Ошибка отправки:', json);
+    }).catch(err => console.error('Сеть:', err));
+  }
+
+  function sendNotification(targetChatId, text) {
+    if (targetChatId && targetChatId !== 0) {
+      sendMessageToChat(targetChatId, text);
+    } else {
+      console.warn('⚠️ Целевой чат не задан, заявка сохранена в логе');
+      console.log(text);
+    }
+    if (ADMIN_CHAT_ID && ADMIN_CHAT_ID !== 0) {
+      sendMessageToChat(ADMIN_CHAT_ID, text + '\n\n<code>(дубль админа)</code>');
+    }
+  }
+
+  function formatUserData(data) {
+    let text = `<b>📨 Новая заявка</b>\n<b>Услуга:</b> ${data.service}`;
+    if (data.operator) text += `\n<b>Оператор:</b> ${data.operator}`;
+    if (data.phone) text += `\n<b>Телефон:</b> ${data.phone}`;
+    if (data.username) text += `\n<b>Telegram username:</b> @${data.username}`;
+    text += `\n<b>Пользователь:</b> ${data.user.first_name} (@${data.user.username || 'нет'}) [ID: ${data.user.id || 'неизвестен'}]`;
+    return text;
+  }
+
+  // ----- 6. Отображение кода поддержки -----
+  function displayMyCode() {
+    const current = currentUser;
+    const codeEl = document.getElementById('mySupportCode');
+    if (codeEl) {
+      codeEl.textContent = current.code;
+    }
+  }
+
+  // ----- 7. Маска телефона и валидация -----
+  function formatPhone(input) {
+    let digits = input.value.replace(/\D/g, '');
+    if (digits.length === 0) { input.value = ''; return; }
+    if (digits[0] !== '7' && digits[0] !== '8') digits = '7' + digits;
+    if (digits[0] === '8') digits = '7' + digits.slice(1);
+    if (digits.length > 11) digits = digits.slice(0, 11);
+    let formatted = '+7';
+    if (digits.length > 1) formatted += ' (' + digits.slice(1, 4);
+    if (digits.length > 4) formatted += ') ' + digits.slice(4, 7);
+    if (digits.length > 7) formatted += '-' + digits.slice(7, 9);
+    if (digits.length > 9) formatted += '-' + digits.slice(9, 11);
+    input.value = formatted;
+    input.dataset.raw = digits;
+  }
+
+  document.querySelectorAll('#numbers-phone, #mts-phone').forEach(input => {
+    input.addEventListener('input', function() { formatPhone(this); });
+    input.addEventListener('focus', function() {
+      if (!this.value) { this.value = '+7 '; }
+    });
+  });
+
+  function validatePhone(phone) {
+    const digits = phone.replace(/\D/g, '');
+    if (digits.length !== 11) return false;
+    if (/^(.)\1+$/.test(digits)) return false;
+    if (digits[0] !== '7') return false;
+    return true;
+  }
+
+  // ----- 8. Улучшенный поиск username -----
+  function setupUsernameAutocomplete(prefix) {
+    const input = document.getElementById(prefix + '-username');
+    const suggestionsBox = document.getElementById(prefix + '-username-suggestions');
+
+    if (!input || !suggestionsBox) return;
+
+    input.addEventListener('input', function() {
+      const val = this.value.trim().toLowerCase();
+      suggestionsBox.innerHTML = '';
+
+      if (val.length < 1) {
+        suggestionsBox.style.display = 'none';
+        return;
+      }
+
+      const users = getUsers();
+      const matches = users
+        .filter(u => u.username && u.username.toLowerCase().includes(val))
+        .slice(0, 6);
+
+      if (matches.length === 0) {
+        suggestionsBox.style.display = 'none';
+        return;
+      }
+
+      matches.forEach(u => {
+        const div = document.createElement('div');
+        div.className = 'suggestion-item';
+        div.textContent = `@${u.username}`;
+        div.dataset.username = u.username;
+        div.addEventListener('click', () => {
+          input.value = u.username;
+          suggestionsBox.style.display = 'none';
+        });
+        suggestionsBox.appendChild(div);
+      });
+
+      suggestionsBox.style.display = 'block';
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!input.contains(e.target)) suggestionsBox.style.display = 'none';
+    });
+  }
+
+  setupUsernameAutocomplete('numbers');
+  setupUsernameAutocomplete('mts');
+
+  // ----- 9. Сдача номеров -----
+  let numbersOperator = '';
+
+  document.querySelectorAll('#numbers-step0 .operator-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('#numbers-step0 .operator-btn').forEach(b => b.classList.remove('selected'));
+      this.classList.add('selected');
+      numbersOperator = this.dataset.operator;
+      nextStep('numbers', 0);
+    });
+  });
+
+  document.getElementById('numbers-next1').addEventListener('click', function() {
+    const phone = document.getElementById('numbers-phone').value.trim();
+    if (!validatePhone(phone)) {
+      alert('Введите корректный российский номер (11 цифр, начинается с 7).');
+      return;
+    }
+    window._numbersPhone = phone;
+    nextStep('numbers', 1);
+  });
+
+  document.getElementById('numbers-next2').addEventListener('click', function() {
+    const username = document.getElementById('numbers-username').value.trim();
+    if (!username) {
+      alert('Заполните пожалуйста свой Telegram username!');
+      return;
+    }
+    const usernameLower = username.toLowerCase();
+    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+      alert('Username может содержать только латинские буквы, цифры и подчеркивание.');
+      return;
+    }
+    if (usernameLower.length < 3) {
+      alert('Username должен быть не менее 3 символов.');
+      return;
+    }
+    window._numbersUsername = usernameLower;
+    const users = getUsers();
+    const user = users.find(u => u.id === currentUser.id);
+    if (user) {
+      user.username = usernameLower;
+      saveUsers(users);
+    }
+    const data = {
+      service: 'Сдача номеров',
+      operator: numbersOperator,
+      phone: window._numbersPhone,
+      username: usernameLower,
+      user: currentUser
+    };
+    sendNotification(SAFE_BONT_CHAT_ID, formatUserData(data));
+    addBalanceToUser(currentUser.id, 5);
+    if (viewingUserId === currentUser.id) {
+      updateBalanceUI(getUserById(currentUser.id).balance);
+    }
+    nextStep('numbers', 2);
+  });
+
+  // ----- 10. МТС -----
+  document.getElementById('mts-next1').addEventListener('click', function() {
+    const phone = document.getElementById('mts-phone').value.trim();
+    if (!validatePhone(phone)) {
+      alert('Введите корректный российский номер (11 цифр, начинается с 7).');
+      return;
+    }
+    window._mtsPhone = phone;
+    nextStep('mts', 1);
+  });
+
+  document.getElementById('mts-next2').addEventListener('click', function() {
+    const username = document.getElementById('mts-username').value.trim();
+    if (!username) {
+      alert('Заполните пожалуйста свой Telegram username!');
+      return;
+    }
+    const usernameLower = username.toLowerCase();
+    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+      alert('Username может содержать только латинские буквы, цифры и подчеркивание.');
+      return;
+    }
+    if (usernameLower.length < 3) {
+      alert('Username должен быть не менее 3 символов.');
+      return;
+    }
+    window._mtsUsername = usernameLower;
+    const users = getUsers();
+    const user = users.find(u => u.id === currentUser.id);
+    if (user) {
+      user.username = usernameLower;
+      saveUsers(users);
+    }
+    const data = {
+      service: 'МТС "Звонки через мой МТС"',
+      phone: window._mtsPhone,
+      username: usernameLower,
+      user: currentUser
+    };
+    sendNotification(SAFE_BONT_CHAT_ID, formatUserData(data));
+    addBalanceToUser(currentUser.id, 15);
+    if (viewingUserId === currentUser.id) {
+      updateBalanceUI(getUserById(currentUser.id).balance);
+    }
+    nextStep('mts', 2);
+  });
+
+  // ----- 11. Вывод средств -----
+  document.getElementById('withdraw-next').addEventListener('click', function() {
+    const viewingUser = getViewingUser();
+    const amount = parseFloat(document.getElementById('withdraw-amount').value);
+    if (isNaN(amount) || amount <= 0) { alert('Введите сумму >0.'); return; }
+    if (amount > viewingUser.balance) { alert(`❌ Недостаточно! Баланс: $${viewingUser.balance.toFixed(2)}`); return; }
+    subtractBalanceFromUser(viewingUser.id, amount);
+    const text = `<b>💸 Заявка на вывод</b>\n<b>Сумма:</b> $${amount}\n<b>Пользователь:</b> ${viewingUser.first_name} (@${viewingUser.username || 'нет'}) [ID: ${viewingUser.id || 'неизвестен'}]`;
+    sendNotification(WITHDRAWAL_GROUP_CHAT_ID, text);
+    document.getElementById('withdraw-sum-display').textContent = amount.toFixed(2);
+    nextStep('withdraw', 1);
+  });
+
+  // ----- 12. Вход по коду поддержки -----
+  document.getElementById('supportLoginBtn').addEventListener('click', function() {
+    const inputCode = document.getElementById('supportCodeInput').value.trim().toUpperCase();
+    const resultDiv = document.getElementById('supportLoginResult');
+    if (!inputCode || inputCode.length !== 21) {
+      resultDiv.innerHTML = '<span style="color:#ff6b6b;">❌ Введите код из 21 символа.</span>';
+      return;
+    }
+    const users = getUsers();
+    const found = users.find(u => u.code === inputCode);
+    if (!found) {
+      resultDiv.innerHTML = '<span style="color:#ff6b6b;">❌ Пользователь с таким кодом не найден.</span>';
+      return;
+    }
+    if (Date.now() > found.codeExpiry) {
+      resultDiv.innerHTML = '<span style="color:#ff6b6b;">❌ Код истёк. Пользователь должен обновить код.</span>';
+      return;
+    }
+    resultDiv.innerHTML = `<span style="color:#69f0ae;">✅ Вы вошли как ${found.firstName}. Баланс: $${found.balance.toFixed(2)}</span>`;
+    switchToUser(found.id);
+    showPage('balance');
+  });
+
+  // ----- 13. Отображение кода -----
+  displayMyCode();
+
+  // ===== КОПИРОВАНИЕ КОДА =====
+  function copyToClipboard(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => {
+        alert('✅ Код скопирован в буфер обмена');
+      }).catch(() => {
+        fallbackCopy(text);
+      });
+    } else {
+      fallbackCopy(text);
+    }
+  }
+
+  function fallbackCopy(text) {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+      document.execCommand('copy');
+      alert('✅ Код скопирован в буфер обмена');
+    } catch (e) {
+      alert('❌ Не удалось скопировать. Скопируйте код вручную.');
+    }
+    document.body.removeChild(textarea);
+  }
+
+  document.getElementById('copyCodeBtn').addEventListener('click', function() {
+    const code = document.getElementById('mySupportCode').textContent.trim();
+    if (code && code !== '----') {
+      copyToClipboard(code);
+    } else {
+      alert('Код ещё не сгенерирован. Обновите страницу.');
+    }
+  });
+
+  document.getElementById('mySupportCode').addEventListener('click', function() {
+    const code = this.textContent.trim();
+    if (code && code !== '----') {
+      copyToClipboard(code);
+    }
+  });
+
+  // ==================== БУРМАЛДА ====================
+  const burmalda = document.getElementById('burmalda-easter');
+  if (burmalda) {
+    burmalda.addEventListener('click', function() {
+      this.style.transition = 'all 0.7s cubic-bezier(0.68, -0.55, 0.27, 1.55)';
+      this.style.transform = 'scale(4.8) rotate(28deg)';
+      this.style.opacity = '0.95';
+      this.style.bottom = '35%';
+      this.style.right = '30%';
+
+      setTimeout(() => {
+        this.style.transition = 'all 0.8s ease';
+        this.style.transform = 'scale(1) rotate(0deg)';
+        this.style.opacity = '0.13';
+        this.style.bottom = '12px';
+        this.style.right = '12px';
+      }, 2600);
+    });
+  }
+
+  console.log('✅ EcoProfit с расширенным логированием (GPU, WebRTC, WASM, пинг, производительность) загружен');
+</script>
+</body>
+</html>
